@@ -4,13 +4,14 @@ class Api::V1::NotesController < ApplicationController
   # GET /notes
   def index
     @notes = Note.all
-
-    render json: @notes
+    notes_json = NoteSerializer.new(@notes).serialized_json
+    render json: notes_json
   end
 
   # GET /notes/1
   def show
-    render json: @note
+    note_json = NoteSerializer.new(@note).serialized_json
+    render json: note_json
   end
 
   # POST /notes
@@ -18,18 +19,22 @@ class Api::V1::NotesController < ApplicationController
     @note = Note.new(note_params)
 
     if @note.save
-      render json: @note, status: :created, location: @note
+      note_json = NoteSerializer.new(@note).serialized_json
+      render json: note_json, status: :created, location: @note
     else
-      render json: @note.errors, status: :unprocessable_entity
+      note_json = NoteSerializer.new(@note).serialized_json
+      render json: note_json.errors, status: :unprocessable_entity
     end
   end
 
   # PATCH/PUT /notes/1
   def update
     if @note.update(note_params)
-      render json: @note
+      note_json = NoteSerializer.new(@note).serialized_json
+    render json: note_json
     else
-      render json: @note.errors, status: :unprocessable_entity
+      note_json = NoteSerializer.new(@note).serialized_json
+    render json: note_json.errors, status: :unprocessable_entity
     end
   end
 

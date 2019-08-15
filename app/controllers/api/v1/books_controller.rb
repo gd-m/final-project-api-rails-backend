@@ -4,13 +4,14 @@ class Api::V1::BooksController < ApplicationController
   # GET /books
   def index
     @books = Book.all
-
-    render json: @books
+    books_json = BookSerializer.new(@books).serialized_json
+    render json: books_json
   end
 
   # GET /books/1
   def show
-    render json: @book
+    book_json = BookSerializer.new(@book).serialized_json
+    render json: book_json
   end
 
   # POST /books
@@ -18,18 +19,22 @@ class Api::V1::BooksController < ApplicationController
     @book = Book.new(book_params)
 
     if @book.save
-      render json: @book, status: :created, location: @book
+      book_json = BookSerializer.new(@book).serialized_json
+    render json: book_json, status: :created, location: @book
     else
-      render json: @book.errors, status: :unprocessable_entity
+      book_json = BookSerializer.new(@book).serialized_json
+    render json: book_json.errors, status: :unprocessable_entity
     end
   end
 
   # PATCH/PUT /books/1
   def update
     if @book.update(book_params)
-      render json: @book
+      book_json = BookSerializer.new(@book).serialized_json
+    render json: book_json
     else
-      render json: @book.errors, status: :unprocessable_entity
+      book_json = BookSerializer.new(@book).serialized_json
+    render json: book_json.errors, status: :unprocessable_entity
     end
   end
 
