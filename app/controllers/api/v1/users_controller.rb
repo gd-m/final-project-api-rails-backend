@@ -3,52 +3,82 @@ class Api::V1::UsersController < ApplicationController
 
   # GET /users
    def index
-     @users = User.all
-
-     #render json: @users
-     users_json = UserSerializer.new(@users).serialized_json
-     render json: users_json
+    if logged_in?
+      @users = User.all
+ 
+      #render json: @users
+      users_json = UserSerializer.new(@users)
+      render json: users_json
+     else
+       render json: {
+         error: "Please Login or SignUp"
+        }
+      end
    end
 
   # # GET /users/1
    def show
-     # render json: @user
-     user_json = UserSerializer.new(@user).serialized_json
-
-     render json: user_json
+    if logged_in?
+      # render json: @user
+      user_json = UserSerializer.new(@user).serialized_json
+ 
+      render json: user_json
+     else
+       render json: {
+         error: "Please Login or SignUp"
+       }
+     end
    end
 
   # POST /users
   def create
+   
     @user = User.new(user_params)
+    byebug
+      if @user.save
+        session[:user_id] = @user.id
+        user_json = UserSerializer.new(@user).serialized_json
+  
+       render json: user_json, status: :created
+      else
 
-    if @user.save
-      user_json = UserSerializer.new(@user).serialized_json
-
-     render json: user_json, status: :created, location: @user
-    else
-      user_json = UserSerializer.new(@user).serialized_json
-
-     render json: user_json.errors, status: :unprocessable_entity
-    end
+        res = {
+          error: @user.errors.full_messages.to_sentence
+        }
+  
+       render json: res, status: :unprocessable_entity
+      end
+    
   end
 
   # PATCH/PUT /users/1
   def update
-    if @user.update(user_params)
-      user_json = UserSerializer.new(@user).serialized_json
-
-     render json: user_json
+    if logged_in?
+      if @user.update(user_params)
+        user_json = UserSerializer.new(@user).serialized_json
+  
+       render json: user_json
+      else
+        user_json = UserSerializer.new(@user).serialized_json
+  
+       render json: user_json.errors, status: :unprocessable_entity
+      end
     else
-      user_json = UserSerializer.new(@user).serialized_json
-
-     render json: user_json.errors, status: :unprocessable_entity
+      render json: {
+        error: "Please Login or SignUp"
+      }
     end
   end
 
   # DELETE /users/1
   def destroy
-    @user.destroy
+    if logged_in?
+      @user.destroy
+    else
+      render json: {
+        error: "Please Login or SignUp"
+      }
+    end
   end
 
   private
@@ -59,6 +89,6 @@ class Api::V1::UsersController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def user_params
-      params.require(:user).permit(:first_name, :last_name, :username, :password_digest)
+      params.require(:user).permit(:first_name, :last_name, :username, :password)
     end
 end
