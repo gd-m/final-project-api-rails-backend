@@ -3,44 +3,86 @@ class Api::V1::BooksController < ApplicationController
 
   # GET /books
   def index
-    @books = Book.all
-    books_json = BookSerializer.new(@books).serialized_json
-    render json: books_json
+    if logged_in?
+      @books = Book.all
+      books_json = BookSerializer.new(@books).serialized_json
+      render json: books_json
+    else
+      render json: {
+        error: "Please login"
+      }
+    end
   end
 
   # GET /books/1
   def show
-    book_json = BookSerializer.new(@book).serialized_json
-    render json: book_json
+    if logged_in?
+      book_json = BookSerializer.new(@book).serialized_json
+      render json: book_json
+    else
+      render json: {
+        error: "Please Login or SignUp"
+      }
+    end
   end
 
   # POST /books
   def create
-    @book = Book.new(book_params)
-
+     if logged_in?
+    @book = current_user.books.build(book_params)
     if @book.save
       book_json = BookSerializer.new(@book).serialized_json
-    render json: book_json, status: :created, location: @book
+
+      render json: book_json
     else
-      book_json = BookSerializer.new(@book).serialized_json
-    render json: book_json.errors, status: :unprocessable_entity
+      render json: {
+        error: "Error"
+      }
     end
+  else
+    render json: {
+      error: "Please Login"
+    }
+  end
+    #   @book = Book.new(book_params)
+    #     book_json = BookSerializer.new(@book).serialized_json
+    #   render json: book_json, status: :created, location: @book
+    #   else
+    #     book_json = BookSerializer.new(@book).serialized_json
+    #   render json: book_json.errors, status: :unprocessable_entity
+    #   end
+    # else
+    #   render json: {
+    #     error: "Please Login or SignUp"
+    #   }
   end
 
   # PATCH/PUT /books/1
   def update
-    if @book.update(book_params)
-      book_json = BookSerializer.new(@book).serialized_json
-    render json: book_json
+    if logged_in?
+      if @book.update(book_params)
+        book_json = BookSerializer.new(@book).serialized_json
+      render json: book_json
+      else
+        book_json = BookSerializer.new(@book).serialized_json
+      render json: book_json.errors, status: :unprocessable_entity
+      end
     else
-      book_json = BookSerializer.new(@book).serialized_json
-    render json: book_json.errors, status: :unprocessable_entity
+      render json: {
+        error: "Please Login or SignUp"
+      }
     end
   end
 
   # DELETE /books/1
   def destroy
-    @book.destroy
+    if logged_in?
+      @book.destroy
+    else
+      render json: {
+        error: "Please Login or SignUp"
+      }
+    end
   end
 
   private
